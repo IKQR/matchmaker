@@ -1,0 +1,145 @@
+﻿services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    ports:
+      - "9092:9092"       # host-facing listener
+      - "29092:29092"     # internal listener (optional to expose, but handy)
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # Two listeners: one for other containers, one for your host
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  akhq:
+    image: tchiotludo/akhq:latest
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            docker-kafka-server:
+              properties:
+                bootstrap.servers: "kafka:29092"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+
+  matchmaking-service:
+    build:
+      context: .
+      dockerfile: src/MatchMaking.Service/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8088
+      
+      AllowedHosts: "*"
+      
+      Cache__MatchLifetime: "1"
+      
+      Redis__ConnectionString: redis:6379
+      
+      Kafka__Brokers: kafka:29092
+      Kafka__MatchmakingRequestTopic: matchmaking.requests
+      Kafka__MatchmakingCompleteTopic: matchmaking.complete
+      Kafka__MatchmakingCompleteGroup: matchmaking.complete.services
+      
+    ports:
+      - "8088:8088"
+    depends_on:
+      - kafka
+      - redis
+
+  matchmaking-worker:
+    build:
+      context: .
+      dockerfile: src/MatchMaking.Worker/Dockerfile
+    deploy:
+      replicas: 2
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+
+      Redis__ConnectionString: redis:6379
+
+      Kafka__Brokers: kafka:29092
+      Kafka__MatchmakingRequestTopic: matchmaking.requests
+      Kafka__MatchmakingCompleteTopic: matchmaking.complete
+      Kafka__MatchmakingRequestGroup: matchmaking.workers
+
+      Assembler__BatchSize: "3"
+      Assembler__IdleDelay: "00:00:01"
+      Assembler__QueueKey: matchmaking:queue
+
+      Outboxer__OutboxListKey: matchmaking:outbox
+      Outboxer__DeadLetterListKey: matchmaking:outbox:dead
+      Outboxer__PopTimeout: "00:00:01"
+      Outboxer__IdleDelay: "00:00:05"
+    depends_on:
+      - kafka
+      - redis
+
+  k6:
+    image: grafana/k6:0.51.0
+    environment:
+      BASE_URL: "http://matchmaking-service:8088"
+      RATE: "200"
+      DURATION_SEC: "300"
+      WARMUP_SEC: "10"
+      POLL_INTERVAL_MS: "100"
+      POLL_TIMEOUT_MS: "15000"
+      BATCH_SIZE: "3"
+      PREALLOC_VUS: "600"
+      MAX_VUS: "1000"
+      K6_INSECURE_SKIP_TLS_VERIFY: "false"   # або "true" якщо https з самопідписаним
+    volumes:
+      - ./k6:/scripts:ro
+    command: ["run", "/scripts/matchmaking_load_test.js"]
+
+  k6-lite:
+    image: grafana/k6:0.51.0
+    environment:
+      BASE_URL: "http://matchmaking-service:8088"
+      RATE: "10"                 # <= 1 request / 100 ms
+      DURATION_SEC: "15"
+      WARMUP_SEC: "10"
+      POLL_INTERVAL_MS: "100"
+      POLL_TIMEOUT_MS: "15000"
+      BATCH_SIZE: "3"
+      START_DELAY_SEC: "5"      # start after the stack is ready
+      PREALLOC_VUS: "3"
+      MAX_VUS: "200"
+      K6_INSECURE_SKIP_TLS_VERIFY: "false"
+    volumes:
+      - ./k6:/scripts:ro
+    command: ["run", "/scripts/matchmaking_load_test.js"]
