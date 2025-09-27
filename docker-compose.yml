@@ -100,6 +100,7 @@
       Assembler__BatchSize: "3"
       Assembler__IdleDelay: "00:00:01"
       Assembler__QueueKey: matchmaking:queue
+      Assembler__OutboxKey: matchmaking:outbox
 
       Outboxer__OutboxListKey: matchmaking:outbox
       Outboxer__DeadLetterListKey: matchmaking:outbox:dead
