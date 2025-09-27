@@ -80,7 +80,7 @@ public sealed class Assembler(
         var matchId = Guid.NewGuid().ToString();
         var result = await _db.ScriptEvaluateAsync(
                 PopFullBatchLua,
-                ["matchmaking:queue", "matchmaking:outbox"],
+                [_options.QueueKey, _options.OutboxKey],
                 [_options.BatchSize, matchId],
                 flags: CommandFlags.DemandMaster)
             .ConfigureAwait(false);
