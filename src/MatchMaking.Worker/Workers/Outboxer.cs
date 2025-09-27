@@ -28,12 +28,6 @@ public sealed class Outboxer(
         {
             try
             {
-                // await _db.ListRightPopLeftPushAsync(
-                //     source: _opt.OutboxListKey,
-                //     destination: _opt.OutboxListKey,
-                //     flags: CommandFlags.None
-                // );
-
                 var br = await _database.ListRightPopAsync(_options.OutboxListKey);
                 
                 if (br.IsNullOrEmpty)
