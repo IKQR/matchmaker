@@ -1,0 +1,54 @@
+﻿name: PR Docker Build
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "src/**"
+      - "docker-compose.yml"
+      - ".github/workflows/**"
+      - ".dockerignore"
+      - "**/Dockerfile"
+      - "Arte.MatchMaking.sln"
+
+concurrency:
+  group: pr-docker-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Dockerfiles
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: service
+            dockerfile: src/MatchMaking.Service/Dockerfile
+          - name: worker
+            dockerfile: src/MatchMaking.Worker/Dockerfile
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build the publish stage of each Dockerfile to ensure the code compiles.
+      # Using --target publish avoids requiring APP_UID in the final stage.
+      - name: Build ${{ matrix.name }} (publish stage)
+        run: |
+          docker buildx build \
+            --file "${{ matrix.dockerfile }}" \
+            --target publish \
+            --build-arg BUILD_CONFIGURATION=Release \
+            --progress plain \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --tag "local/${{ matrix.name }}:pr-${{ github.sha }}" \
+            .
