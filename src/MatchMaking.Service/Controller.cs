@@ -48,9 +48,9 @@ public class Controller(ITopicProducer<MatchmakingRequestMessage> producer, IDis
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [OutputCache(VaryByRouteValueNames = ["userId"], Duration = 60)]
-    public async Task<IActionResult> GetMatch([FromRoute] string userId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetMatch([FromRoute] Guid userId, CancellationToken cancellationToken)
     {
-        var matchId = await cache.GetStringAsync("user:" + userId, token: cancellationToken);
+        var matchId = await cache.GetStringAsync("user:" + userId.ToString(), token: cancellationToken);
 
         if (string.IsNullOrEmpty(matchId))
         {
