@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchMaking.Service", "src\MatchMaking.Service\MatchMaking.Service.csproj", "{15B3479F-29E8-408B-8809-52D8A30BD599}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchMaking.Worker", "src\MatchMaking.Worker\MatchMaking.Worker.csproj", "{32BCB4F5-212D-41BF-B5BD-EC6ECAB67C08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MatchMaking.Contracts", "src\MatchMaking.Contracts\MatchMaking.Contracts.csproj", "{D8355FC2-FB92-4626-BB34-FC2561B40A01}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{272841AA-81FC-4C2C-B18F-76065D09C261}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.gitignore = .gitignore
+		docker-compose.yml = docker-compose.yml
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{65892581-CF29-4E40-A733-0F5F54815F29}"
+	ProjectSection(SolutionItems) = preProject
+		k6\matchmaking_load_test.js = k6\matchmaking_load_test.js
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15B3479F-29E8-408B-8809-52D8A30BD599}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15B3479F-29E8-408B-8809-52D8A30BD599}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15B3479F-29E8-408B-8809-52D8A30BD599}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15B3479F-29E8-408B-8809-52D8A30BD599}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32BCB4F5-212D-41BF-B5BD-EC6ECAB67C08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32BCB4F5-212D-41BF-B5BD-EC6ECAB67C08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32BCB4F5-212D-41BF-B5BD-EC6ECAB67C08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32BCB4F5-212D-41BF-B5BD-EC6ECAB67C08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8355FC2-FB92-4626-BB34-FC2561B40A01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8355FC2-FB92-4626-BB34-FC2561B40A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8355FC2-FB92-4626-BB34-FC2561B40A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8355FC2-FB92-4626-BB34-FC2561B40A01}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal
